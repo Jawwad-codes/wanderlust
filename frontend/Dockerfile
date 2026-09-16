@@ -23,7 +23,7 @@ WORKDIR /app
 COPY --from=frontend-builder /app .
 
 # Copy the .env.sample file to .env.local
-COPY .env.docker .env.local
+COPY .env.docker .
 
 # Expose port 5173 for the Node.js application
 EXPOSE 5173
