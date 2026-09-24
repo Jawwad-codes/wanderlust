@@ -17,6 +17,16 @@ jest.mock('../../../models/post.js', () => ({
   default: jest.fn(),
 }));
 
+// Ensure every test starts with clean, independent mocks instead of relying
+// on leftover state assigned by whichever test ran before it.
+beforeEach(() => {
+  jest.clearAllMocks();
+  Post.find = jest.fn();
+  Post.findById = jest.fn();
+  Post.findByIdAndUpdate = jest.fn();
+  Post.findByIdAndDelete = jest.fn();
+});
+
 describe('createPostHandler', () => {
   it('Post creation: Success - All fields are valid', async () => {
     const postObject = createPostObject();
@@ -100,7 +110,7 @@ describe('getAllPostsHandler', () => {
       createPostObject({ title: 'Test Post - 3' }),
     ];
 
-    Post.find = jest.fn().mockResolvedValueOnce(mockPosts);
+    Post.find.mockResolvedValueOnce(mockPosts);
 
     await getAllPostsHandler(req, res);
 
@@ -111,7 +121,7 @@ describe('getAllPostsHandler', () => {
   it('Get all posts: Failure - Internal Server Error', async () => {
     const req = createRequestObject();
 
-    Post.find = jest.fn().mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
+    Post.find.mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
 
     await getAllPostsHandler(req, res);
 
@@ -130,7 +140,7 @@ describe('getFeaturedPostsHandler', () => {
       createPostObject({ title: 'Test Post - 3', isFeaturedPost: true }),
     ];
 
-    Post.find = jest.fn().mockResolvedValueOnce(mockFeaturedPosts);
+    Post.find.mockResolvedValueOnce(mockFeaturedPosts);
 
     await getFeaturedPostsHandler(req, res);
 
@@ -141,7 +151,7 @@ describe('getFeaturedPostsHandler', () => {
   it('Get featured posts: Failure - Internal Server Error', async () => {
     const req = createRequestObject();
 
-    Post.find = jest.fn().mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
+    Post.find.mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
 
     await getFeaturedPostsHandler(req, res);
 
@@ -160,7 +170,7 @@ describe('getPostByCategoryHandler', () => {
       createPostObject({ title: 'Test Post - 3', categories: [validCategories[1]] }),
     ];
 
-    Post.find = jest.fn().mockResolvedValueOnce(mockPosts);
+    Post.find.mockResolvedValueOnce(mockPosts);
 
     await getPostByCategoryHandler(req, res);
 
@@ -180,7 +190,7 @@ describe('getPostByCategoryHandler', () => {
   it('Get posts by category: Failure - Internal Server Error', async () => {
     const req = createRequestObject({ params: { category: validCategories[1] } });
 
-    Post.find = jest.fn().mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
+    Post.find.mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
 
     await getPostByCategoryHandler(req, res);
 
@@ -229,7 +239,7 @@ describe('getPostByIdHandler', () => {
 
     const mockPost = createPostObject({ _id: '6910293383' });
 
-    Post.findById = jest.fn().mockResolvedValueOnce(mockPost);
+    Post.findById.mockResolvedValueOnce(mockPost);
 
     await getPostByIdHandler(req, res);
 
@@ -240,18 +250,18 @@ describe('getPostByIdHandler', () => {
   it('Get post by ID: Failure - Post not found (Specified post ID is invalid)', async () => {
     const req = createRequestObject({ params: { id: '6910293383' } });
 
-    Post.findById = jest.fn().mockResolvedValueOnce(null);
+    Post.findById.mockResolvedValueOnce(null);
 
     await getPostByIdHandler(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
     expect(res.json).toHaveBeenCalledWith({ message: RESPONSE_MESSAGES.POSTS.NOT_FOUND });
   });
 
   it('Get post by ID: Failure - Internal Server Error', async () => {
     const req = createRequestObject({ params: { id: '6910293383' } });
 
-    Post.findById = jest.fn().mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
+    Post.findById.mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
 
     await getPostByIdHandler(req, res);
 
@@ -269,8 +279,7 @@ describe('updatePostHandler', () => {
 
     const mockPost = createPostObject({ _id: '6910293383', title: 'Updated Post' });
 
-    // Mock the behavior of Post.findByIdAndUpdate
-    Post.findByIdAndUpdate = jest.fn().mockResolvedValueOnce(mockPost);
+    Post.findByIdAndUpdate.mockResolvedValueOnce(mockPost);
 
     await updatePostHandler(req, res);
 
@@ -284,12 +293,11 @@ describe('updatePostHandler', () => {
       body: { title: 'Updated Post' },
     });
 
-    // Mock the behavior of Post.findByIdAndUpdate
-    Post.findByIdAndUpdate = jest.fn().mockResolvedValueOnce(null);
+    Post.findByIdAndUpdate.mockResolvedValueOnce(null);
 
     await updatePostHandler(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
     expect(res.json).toHaveBeenCalledWith({ message: RESPONSE_MESSAGES.POSTS.NOT_FOUND });
   });
 
@@ -298,8 +306,8 @@ describe('updatePostHandler', () => {
       params: { id: '6910293383' },
       body: { title: 'Updated Post' },
     });
-    // Mock the behavior of Post.findByIdAndUpdate
-    Post.findByIdAndUpdate = jest.fn().mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
+
+    Post.findByIdAndUpdate.mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
 
     await updatePostHandler(req, res);
 
@@ -314,8 +322,7 @@ describe('deletePostByIdHandler', () => {
 
     const mockPost = createPostObject({ _id: '6910293383' });
 
-    // Mock the behavior of Post.findByIdAndRemove
-    Post.findByIdAndDelete = jest.fn().mockResolvedValueOnce(mockPost);
+    Post.findByIdAndDelete.mockResolvedValueOnce(mockPost);
 
     await deletePostByIdHandler(req, res);
 
@@ -328,20 +335,18 @@ describe('deletePostByIdHandler', () => {
   it('Delete Post: Failure - Post not found (Specified post ID is invalid)', async () => {
     const req = createRequestObject({ params: { id: '6910293383' } });
 
-    // Mock the behavior of Post.findByIdAndRemove
-    Post.findByIdAndDelete = jest.fn().mockResolvedValueOnce(null);
+    Post.findByIdAndDelete.mockResolvedValueOnce(null);
 
     await deletePostByIdHandler(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
     expect(res.json).toHaveBeenCalledWith({ message: RESPONSE_MESSAGES.POSTS.NOT_FOUND });
   });
 
   it('Delete Post: Failure - Internal Server Error', async () => {
     const req = createRequestObject({ params: { id: '6910293383' } });
 
-    // Mock the behavior of Post.findByIdAndRemove
-    Post.findByIdAndDelete = jest.fn().mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
+    Post.findByIdAndDelete.mockRejectedValueOnce(new Error(RESPONSE_MESSAGES.COMMON.INTERNAL_SERVER_ERROR));
 
     await deletePostByIdHandler(req, res);
 
