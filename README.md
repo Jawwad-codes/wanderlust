@@ -90,11 +90,11 @@ Repeat for `k8s-worker-1`, `k8s-worker-2`, `jenkins-master`, `jenkins-agent`.
 Give every VM a **static IP** (netplan or a libvirt DHCP reservation) and add all hosts to `/etc/hosts` on each VM:
 
 ```
-<ip> k8s-master
-<ip> k8s-worker-1
-<ip> k8s-worker-2
-<ip> jenkins-master
-<ip> jenkins-agent
+<192.168.56.10> k8s-master
+<192.168.56.11> k8s-worker-1
+<192.168.56.12> k8s-worker-2
+<192.168.56.15> jenkins-master
+<192.168.56.16> jenkins-agent
 ```
 
 ---
