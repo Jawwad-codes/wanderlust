@@ -20,7 +20,7 @@ Wanderlust is an open-source MERN travel blog. This repository deploys it throug
 | `jenkins-master` | CI server | Jenkins controller, SonarQube (Docker) |
 | `jenkins-agent` | CI build node | Docker, Trivy, OWASP Dependency-Check, build jobs |
 
-All VMs sit on one libvirt network (example: `192.168.122.0/24`).
+All VMs sit on one libvirt network (example: `192.168.56.0/24`).
 
 ### Delivery flow
 
